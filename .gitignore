@@ -1,0 +1,24 @@
+# Terraform: provider downloads, state (holds resource details), plans, real variable values
+# (.terraform.lock.hcl IS committed: it pins provider versions)
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+*.plan
+*.tfplan
+plan.txt
+tfplan.txt
+
+# Exported kubeconfigs (contain cluster credentials)
+*kubeconfig*
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Editors / OS
+.vscode/
+.DS_Store
+Thumbs.db
