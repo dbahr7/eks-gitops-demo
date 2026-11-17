@@ -8,6 +8,13 @@ terraform {
       version = "~> 6.73"
     }
   }
+
+  backend "s3" {
+    bucket       = "eks-gitops-demo-tfstate-396421249317"
+    key          = "bootstrap/terraform.tfstate"
+    region       = "us-east-1"
+    use_lockfile = true
+  }
 }
 
 provider "aws" {
@@ -21,16 +28,5 @@ provider "aws" {
     }
   }
 }
-
-
-
-# --- Step 2, AFTER the first apply (leave it out for now) ----------------------------
-# Chicken-and-egg: this stack CREATES the state bucket, so its own first state has to
-# be local. Once the bucket exists, add a backend block inside `terraform { }`:
-#   backend "s3" with bucket = <the new bucket>, key = "bootstrap/terraform.tfstate",
-#   region, and use_lockfile = true
-# then run `terraform init -migrate-state` to move the local state into the bucket.
-# Why bother: a git-ignored local state file is what got lost in the Mac -> Windows
-# move (the orphaned Career Compass VPC). In S3 with versioning, it can't be lost that way.
 
 
