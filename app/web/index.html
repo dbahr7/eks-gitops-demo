@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>eks-gitops-demo votes</title>
+  <style>
+    :root { --fg: #222; --muted: #666; --line: #ddd; --bg: #fff; --yes: #2e7d32; --no: #c62828; }
+    @media (prefers-color-scheme: dark) {
+      :root { --fg: #eee; --muted: #aaa; --line: #444; --bg: #181818; --yes: #388e3c; --no: #d32f2f; }
+    }
+    body { font-family: system-ui, sans-serif; max-width: 28rem; margin: 3rem auto; padding: 0 1rem;
+           color: var(--fg); background: var(--bg); }
+    h1 { font-size: 1.4rem; }
+    .buttons { display: flex; gap: 1rem; margin: 1.5rem 0; }
+    button { flex: 1; font-size: 1.2rem; padding: 0.8rem; border: 0; border-radius: 0.4rem;
+             cursor: pointer; color: #fff; }
+    #yes { background: var(--yes); }
+    #no { background: var(--no); }
+    button:disabled { opacity: 0.5; cursor: wait; }
+    table { width: 100%; border-collapse: collapse; }
+    td { padding: 0.5rem 0; border-bottom: 1px solid var(--line); }
+    td:last-child { text-align: right; font-weight: bold; font-variant-numeric: tabular-nums; }
+    #status { margin-top: 1rem; font-size: 0.9rem; color: var(--muted); }
+    #status.error { color: var(--no); }
+  </style>
+</head>
+<body>
+  <h1>Do you like GitOps?</h1>
+
+  <div class="buttons">
+    <button id="yes">Yes</button>
+    <button id="no">No</button>
+  </div>
+
+  <table>
+    <tr><td>Page visits</td><td id="visits">-</td></tr>
+    <tr><td>Yes votes</td><td id="yes-count">-</td></tr>
+    <tr><td>No votes</td><td id="no-count">-</td></tr>
+  </table>
+
+  <p id="status">Connecting...</p>
+
+  <script>
+    const status = document.getElementById("status");
+    const buttons = document.querySelectorAll("button");
+
+    function show(counts) {
+      document.getElementById("visits").textContent = counts.visits;
+      document.getElementById("yes-count").textContent = counts.yes;
+      document.getElementById("no-count").textContent = counts.no;
+      status.textContent = "Connected: browser → web → api → DynamoDB";
+      status.className = "";
+    }
+
+    function fail(err) {
+      status.textContent = "Error: " + err.message;
+      status.className = "error";
+    }
+
+    // Relative URLs: nginx forwards /api/ to the API, so the page works on any host.
+    async function post(path, body) {
+      const res = await fetch(path, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: body ? JSON.stringify(body) : undefined,
+      });
+      if (!res.ok) throw new Error(res.status + " " + res.statusText);
+      return res.json();
+    }
+
+    async function vote(choice) {
+      buttons.forEach(b => b.disabled = true);
+      try { show(await post("/api/vote", { choice })); }
+      catch (err) { fail(err); }
+      finally { buttons.forEach(b => b.disabled = false); }
+    }
+
+    document.getElementById("yes").addEventListener("click", () => vote("yes"));
+    document.getElementById("no").addEventListener("click", () => vote("no"));
+
+    // Each page load (including a refresh) counts one visit; votes don't.
+    post("/api/visit").then(show).catch(fail);
+  </script>
+</body>
+</html>
