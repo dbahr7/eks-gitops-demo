@@ -20,6 +20,12 @@
 #     and the AWS provider made this argument optional.
 #   One per account per URL. None exists in this account yet (checked 2026-11-17).
 
+locals {
+  github_owner = split("/", var.github_repo)[0] # "dbahr7"
+  github_name  = split("/", var.github_repo)[1] # "eks-gitops-demo"
+  github_sub   = "repo:${local.github_owner}@${var.github_owner_id}/${local.github_name}@${var.github_repo_id}:ref:refs/heads/${var.github_branch}"
+}
+
 resource "aws_iam_openid_connect_provider" "github_actions" {
   url            = "https://token.actions.githubusercontent.com"
   client_id_list = ["sts.amazonaws.com"]
@@ -72,7 +78,7 @@ data "aws_iam_policy_document" "github_actions_assume_role" {
     condition {
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:${var.github_repo}:ref:refs/heads/${var.github_branch}"]
+      values   = [local.github_sub]
     }
   }
 }

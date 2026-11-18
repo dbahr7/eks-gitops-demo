@@ -37,3 +37,13 @@ variable "app_images" {
   type    = set(string)
   default = ["api", "web"]
 }
+
+variable "github_owner_id" {
+  type    = string
+  default = "37220326"
+}
+
+variable "github_repo_id" {
+  type    = string
+  default = "1461888911"
+}
